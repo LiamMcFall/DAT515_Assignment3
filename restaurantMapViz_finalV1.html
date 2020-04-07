@@ -1,0 +1,262 @@
+<html>
+<head>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100;400;700;800&display=swap" rel="stylesheet">
+  <script src="https://d3js.org/d3.v5.js"></script>
+
+  <style>
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+  body{
+    background:#A8E5EB;
+    padding-top: 2%;
+  }
+
+  h1{
+    font-size: 60px;
+    font-family: 'Raleway', sans-serif;
+    letter-spacing: 0.04em;
+    font-weight: 800;
+    text-align: center;
+    text-transform: uppercase;
+    color: #ffffff;
+    background: #ED906D;
+    padding: 0.5%;
+  }
+
+  h2{
+    font-size: 24px;
+    font-family: 'Raleway', sans-serif;
+    letter-spacing: 0.01em;
+    font-weight: 700;
+    text-align: left;
+    color:#294D85;
+  }
+
+  h3{
+    font-size: 20px;
+    font-family: 'Raleway', sans-serif;
+    letter-spacing: 0.04em;
+    font-weight: 800;
+    text-align: center;
+    text-transform: uppercase;
+    color: #ffffff;
+    background: #ED906D;
+    padding: 0.5%;
+    margin-top: 5%;
+  }
+
+  #slider{
+    font-size: 14px;
+    font-family: 'Raleway', sans-serif;
+    letter-spacing: 0.01em;
+    font-weight: 400;
+    text-align: center;
+    display: inline-block;
+    width: 200px;
+  }
+
+  svg {
+    display: block;
+    margin: auto;
+    background: #294D85;
+    border: #ffffff;
+    border-width: 3px;
+    border-style: solid;
+}
+
+  circle.poi{
+    fill:rgba(138,138,138,0.75);
+}
+
+  #inputs{
+    display: flex;
+    text-align: center;
+    align-items: center;
+    padding: 1%;
+    margin: 1%;
+    max-width: 100%;
+    justify-content: center;
+  }
+
+  .inputs{
+    min-height: 120px;
+    /* background: green; */
+    padding-right: 24px;
+    padding-left: 24px;
+}
+
+  text{
+    fill: white;
+  }
+
+  </style>
+
+</head>
+<body>
+
+<h1>Restaurants of San Francisco</h1>
+
+<div id="inputs">
+
+<div class="inputs">
+<h2>Point of Interest Radius Slider</h2>
+
+  <label id="slider" for="nRadius">
+         Point of Interest Radius = <span id="nRadius-value"></span>
+  </label>
+  <input type="range" min="10" max="500" id="nRadius">
+</div>
+
+
+<div class="inputs">
+<h2>Risk Level Dropdown Menu</h2>
+
+<div id="dataviz_builtWithD3"></div>
+</div>
+
+</div>
+
+<script>
+
+// Map creation and variables
+  var mapWidth = 800;
+  var mapHeight = 800;
+  var radius = 2;
+
+  var projection = d3.geoMercator()
+      .center([-122.433701, 37.767683]) // San Francisco, roughly
+      .scale(225000)
+      .translate([mapWidth / 2, mapHeight / 2])
+
+  var svg = d3.select('body')
+      .append('svg')
+      .attr('width', mapWidth)
+      .attr('height', mapHeight)
+
+  var allgroup=["All", "No Risk", "Low Risk", "Moderate Risk", "High Risk"]
+
+  var dropdownButton=d3.select("#dataviz_builtWithD3")
+      .append('select')
+
+  dropdownButton
+        .selectAll("myOptions")
+          .data(allgroup)
+        .enter()
+          .append('option')
+        .text(function (d) {return d; })
+        .attr("value", function (d) { return d; })
+
+  svg.append('image')
+      .attr('width', mapWidth)
+      .attr('height', mapHeight)
+      .attr('xlink:href', 'sf-map.svg');
+
+  svg.on("click", function() {
+    var coords = d3.mouse(this);
+
+    svg.append("circle")
+      .attr("fill", "black")
+      .attr("cx", coords[0])
+      .attr("cy", coords[1])
+      .attr('r', 25)
+      // .style("opacity", .25)
+      .attr("class", "poi")
+      .on("mouseover", function(){
+        d3.select(this).lower();})
+    ;
+
+    if (svg.selectAll("circle.poi").size() >= 3) {
+      svg.selectAll("circle.poi").remove();
+    };
+
+  });
+
+  if (svg.selectAll("circle.poi").size() >= 2) {
+    svg.selectAll("circle.poi").remove();
+  }
+
+  // when the input range changes update the circle
+  d3.select("#nRadius").on("input", function() {
+    update(+this.value);
+  });
+
+  // Initial starting radius of the circle
+  update(25);
+
+  // update the elements
+  function update(nRadius) {
+
+    // adjust the text on the range slider
+    d3.select("#nRadius-value").text(nRadius);
+    d3.select("#nRadius").property("value", nRadius);
+
+    // update the rircle radius
+    svg.selectAll('circle.poi')
+      .attr("r", nRadius);
+  }
+
+  function updateChart(option) {
+    svg.selectAll("circle").remove();
+    d3.csv(option).then(function(data){
+    svg.selectAll("circle")
+      .data(data)
+      .enter()
+      .append("circle")
+      .attr("fill", "#ED906D")
+      .attr("cx", function(d) { return projection([+d.business_longitude, +d.business_latitude])[0]; })
+      .attr("cy", function(d) { return projection([+d.business_longitude, +d.business_latitude])[1]; })
+      .attr('r', radius)
+      .on("mouseover", function(d) {
+          d3.select(this).attr('r', radius * 5).attr('fill', 'white');
+          d3.select(this.parentNode).append("text")
+              .attr("x", mapWidth / 3)
+              .attr("y", 25)
+              .text(function() {
+                return  d.business_name + " | " + d.business_address
+              });
+          })
+      .on("mouseout", function(d) {
+        d3.select(this).attr('r',radius).attr('fill', '#ED906D');
+        d3.selectAll('text').remove();
+      });
+})
+};
+
+  //https://bl.ocks.org/williaster/79aa4dbb3ab17f13732f
+
+   dropdownButton.on("change", function(d){
+     var selectedOption = d3.select(this).property("value")
+
+     if (selectedOption == "No Risk"){
+       updateChart("no_risk.csv")
+     }
+     else if (selectedOption == "Low Risk"){
+       updateChart("low_risk.csv")
+     }
+     else if (selectedOption == "Moderate Risk"){
+       updateChart("mod_risk.csv")
+     }
+     else if (selectedOption == "High Risk"){
+       updateChart("high_risk.csv")
+     }
+     else {
+       updateChart("restaurant_scores.csv")
+     }
+   });
+
+   updateChart("restaurant_scores.csv");
+
+
+</script>
+
+<h3>Liam McFall & Cam Farrugia</h3>
+
+
+
+</body>
+</html>
