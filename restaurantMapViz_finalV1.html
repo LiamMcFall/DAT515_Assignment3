@@ -156,6 +156,7 @@
       .attr('height', mapHeight)
       .attr('xlink:href', 'sf-map.svg');
 
+// Point of interest circles on click
   svg.on("click", function() {
     var coords = d3.mouse(this);
 
@@ -164,7 +165,6 @@
       .attr("cx", coords[0])
       .attr("cy", coords[1])
       .attr('r', 25)
-      // .style("opacity", .25)
       .attr("class", "poi")
       .on("mouseover", function(){
         d3.select(this).lower();})
@@ -195,7 +195,7 @@
     d3.select("#nRadius-value").text(nRadius);
     d3.select("#nRadius").property("value", nRadius);
 
-    // update the rircle radius
+    // update the circle radius
     svg.selectAll('circle.poi')
       .attr("r", nRadius);
   }
@@ -255,8 +255,6 @@
 </script>
 
 <h3>Liam McFall & Cam Farrugia</h3>
-
-
 
 </body>
 </html>
