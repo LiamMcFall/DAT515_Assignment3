@@ -85,13 +85,13 @@
 
   .inputs{
     min-height: 120px;
-    /* background: green; */
     padding-right: 24px;
     padding-left: 24px;
 }
 
   text{
     fill: white;
+    font-family: 'Raleway', sans-serif;
   }
 
   </style>
@@ -138,11 +138,12 @@
       .attr('width', mapWidth)
       .attr('height', mapHeight)
 
+// Drop Down Button creation-Drop down options
   var allgroup=["All", "No Risk", "Low Risk", "Moderate Risk", "High Risk"]
-
+// Actual drop down
   var dropdownButton=d3.select("#dataviz_builtWithD3")
       .append('select')
-
+// Implementing the dropdown https://www.d3-graph-gallery.com/graph/interactivity_button.html
   dropdownButton
         .selectAll("myOptions")
           .data(allgroup)
@@ -199,7 +200,8 @@
     svg.selectAll('circle.poi')
       .attr("r", nRadius);
   }
-
+// function to change the points when the user changes the dropdown menu, also
+// includes the mouseover function to increase the size and give address and name
   function updateChart(option) {
     svg.selectAll("circle").remove();
     d3.csv(option).then(function(data){
@@ -228,6 +230,8 @@
 };
 
   //https://bl.ocks.org/williaster/79aa4dbb3ab17f13732f
+
+  // The dropdown menu calling the filtered csv files corresponding selection
 
    dropdownButton.on("change", function(d){
      var selectedOption = d3.select(this).property("value")
