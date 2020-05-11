@@ -1,5 +1,6 @@
 # DAT515_Assignment3
 https://liammcfall.github.io/DAT515_Assignment3/restaurantMapViz_finalV1.html
+
 SF Restaurant Visualization
 
 Assignment to create an interactive visualization using d3.js.
